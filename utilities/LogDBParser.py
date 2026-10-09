@@ -3,6 +3,36 @@
 
 import sqlite3
 
+# SQLite 保留字（统一大写）。这些词直接拼进 SELECT 语句作字段名时会报语法错误，
+# getData()/getDataASC() 会对命中保留字的字段名自动加方括号转义，
+# 例如 PARM 表的 Default、AUXF 表的 index。
+SQLITE_KEYWORDS = frozenset("""
+    ABORT ACTION ADD AFTER ALL ALTER ALWAYS ANALYZE AND AS ASC ATTACH AUTOINCREMENT
+    BEFORE BEGIN BETWEEN BY
+    CASCADE CASE CAST CHECK COLLATE COLUMN COMMIT CONFLICT CONSTRAINT CREATE CROSS
+    CURRENT CURRENT_DATE CURRENT_TIME CURRENT_TIMESTAMP
+    DATABASE DEFAULT DEFERRABLE DEFERRED DELETE DESC DETACH DISTINCT DO DROP
+    EACH ELSE END ESCAPE EXCEPT EXCLUDE EXCLUSIVE EXISTS EXPLAIN
+    FAIL FILTER FIRST FOLLOWING FOR FOREIGN FROM FULL
+    GLOB GROUP GROUPS
+    HAVING
+    IF IGNORE IMMEDIATE IN INDEX INDEXED INITIALLY INNER INSERT INSTEAD INTO IS ISNULL
+    JOIN KEY
+    LAST LEFT LIKE LIMIT
+    MATCH MATERIALIZED
+    NATURAL NO NOT NOTHING NOTNULL NULL NULLS
+    OF OFFSET ON OR ORDER OTHERS OUTER OVER
+    PARTITION PLAN PRAGMA PRECEDING PRIMARY
+    QUERY
+    RAISE RANGE RECURSIVE REFERENCES REGEXP REINDEX RELEASE RENAME REPLACE RESTRICT
+    RETURNING RIGHT ROLLBACK ROW ROWS
+    SAVEPOINT SELECT SET
+    TABLE TEMP TEMPORARY THEN TIES TO TRANSACTION TRIGGER
+    UNBOUNDED UNION UNIQUE UPDATE USING
+    VACUUM VALUES VIEW VIRTUAL
+    WHEN WHERE WINDOW WITH WITHOUT
+""".split())
+
 class LogDBParser:
     """
     SQLite3 数据库形式的日志文件数据读取
@@ -44,6 +74,7 @@ class LogDBParser:
         输入：
         1. table - 表名
         2. *args - 字段名（不定长，最多 20 个，用英文逗号隔开）
+                 字段名与 SQLite 保留字相同（如 Default、Limit、index）时会自动转义
         返回：各个字段的值
         示例：
         res = getData("SCHE","TimeUS","name","taken","max")
@@ -57,6 +88,8 @@ class LogDBParser:
 
         for n in args:
             arg_num += 1
+            if n.upper() in SQLITE_KEYWORDS:
+                n = '[' + n + ']'
             SQLITE_CMD += n
             SQLITE_CMD += ","
         SQLITE_CMD = SQLITE_CMD[:-1]
@@ -65,7 +98,6 @@ class LogDBParser:
 
         with self.conn:
             cur = self.conn.cursor()
-            SQLITE_CMD = SQLITE_CMD.replace('Limit', '[Limit]')
             data = cur.execute(SQLITE_CMD)
 
         res = [[],[],[],[],[],
@@ -121,6 +153,7 @@ class LogDBParser:
         输入：
         1. table - 表名
         2. *args - 字段名（不定长，最多 20 个，用英文逗号隔开）
+                 字段名与 SQLite 保留字相同（如 Default、Limit、index）时会自动转义
         返回：各个字段的值
         示例：
         res = getData("SCHE","TimeUS","name","taken","max")
@@ -134,12 +167,16 @@ class LogDBParser:
 
         for n in args:
             arg_num += 1
+            if n.upper() in SQLITE_KEYWORDS:
+                n = '[' + n + ']'
             SQLITE_CMD += n
             SQLITE_CMD += ","
         SQLITE_CMD = SQLITE_CMD[:-1]
         SQLITE_CMD += " FROM "
         SQLITE_CMD += table
         SQLITE_CMD += " ORDER BY "
+        if order.upper() in SQLITE_KEYWORDS:
+            order = '[' + order + ']'
         SQLITE_CMD += order
 
         with self.conn:
