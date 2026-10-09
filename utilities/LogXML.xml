@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Log>
+  <format>
+    <field marker="a" type="int16_t[32]"></field>
+    <field marker="b" type="int8_t"></field>
+    <field marker="B" type="uint8_t"></field>
+    <field marker="h" type="int16_t"></field>
+    <field marker="H" type="uint16_t"></field>
+    <field marker="i" type="int32_t"></field>
+    <field marker="I" type="uint32_t"></field>
+    <field marker="f" type="float"></field>
+    <field marker="d" type="double"></field>
+    <field marker="n" type="char[4]"></field>
+    <field marker="N" type="char[16]"></field>
+    <field marker="Z" type="char[64]"></field>
+    <field marker="c" type="int16_t * 100"></field>
+    <field marker="C" type="uint16_t * 100"></field>
+    <field marker="e" type="int32_t * 100"></field>
+    <field marker="E" type="uint32_t * 100"></field>
+    <field marker="L" type="int32_t">latitude/longitude</field>
+    <field marker="M" type="uint8_t">flight mode</field>
+    <field marker="q" type="int16_t"></field>
+    <field marker="Q" type="uint64_t"></field>
+  </format>
+  <logUnits>
+    <field marker="-" unit="">no units e.g. Pi, or a string</field>
+    <field marker="?" unit="UNKNOWN">Units which haven't been worked out yet....</field>
+    <field marker="A" unit="A">Ampere</field>
+    <field marker="a" unit="Ah">Ampere hours</field>
+    <field marker="d" unit="deg">of the angular variety, -180 to 180</field>
+    <field marker="b" unit="B">bytes</field>
+    <field marker="k" unit="deg/s">degrees per second. Degrees are NOT SI, but is some situations more user-friendly than radians</field>
+    <field marker="D" unit="deglatitude">degrees of latitude</field>
+    <field marker="e" unit="deg/s/s">degrees per second per second. Degrees are NOT SI, but is some situations more user-friendly than radians</field>
+    <field marker="E" unit="rad/s">radians per second</field>
+    <field marker="G" unit="Gauss">Gauss is not an SI unit, but 1 tesla = 10000 gauss so a simple replacement is not possible here</field>
+    <field marker="h" unit="degheading">0.? to 359.?</field>
+    <field marker="i" unit="A.s">Ampere second</field>
+    <field marker="J" unit="W.s">Joule (Watt second)</field>
+    <field marker="l" unit="l">litres</field>
+    <field marker="L" unit="rad/s/s">radians per second per second</field>
+    <field marker="m" unit="m">metres</field>
+    <field marker="n" unit="m/s">metres per second</field>
+    <field marker="N" unit="N">Newton</field>
+    <field marker="o" unit="m/s/s">metres per second per second</field>
+    <field marker="O" unit="degC">degrees Celsius. Not SI, but Kelvin is too cumbersome for most users</field>
+    <field marker="%" unit="%">percent</field>
+    <field marker="S" unit="satellites">number of satellites</field>
+    <field marker="s" unit="s">seconds</field>
+    <field marker="q" unit="rpm">rounds per minute. Not SI, but sometimes more intuitive than Hertz</field>
+    <field marker="r" unit="rad">radians</field>
+    <field marker="U" unit="deglongitude">degrees of longitude</field>
+    <field marker="u" unit="ppm">pulses per minute</field>
+    <field marker="v" unit="V">Volt</field>
+    <field marker="P" unit="Pa">Pascal</field>
+    <field marker="w" unit="Ohm">Ohm</field>
+    <field marker="W" unit="Watt">Watt</field>
+    <field marker="X" unit="W.h">Watt hour</field>
+    <field marker="Y" unit="us">pulse width modulation in microseconds</field>
+    <field marker="z" unit="Hz">Hertz</field>
+    <field marker="#" unit="instance">(e.g.)Sensor instance number</field>
+  </logUnits>
+  <logMultipliers>
+    <field marker="-" multiplier="0">no multiplier e.g. a string</field>
+    <field marker="?" multiplier="1">multipliers which haven't been worked out yet....</field>
+    <field marker="2" multiplier="1e2"></field>
+    <field marker="1" multiplier="1e1"></field>
+    <field marker="0" multiplier="1e0"></field>
+    <field marker="A" multiplier="1e-1"></field>
+    <field marker="B" multiplier="1e-2"></field>
+    <field marker="C" multiplier="1e-3"></field>
+    <field marker="D" multiplier="1e-4"></field>
+    <field marker="E" multiplier="1e-5"></field>
+    <field marker="F" multiplier="1e-6"></field>
+    <field marker="G" multiplier="1e-7"></field>
+    <field marker="!" multiplier="3.6">(ampere*second => milliampere*hour) and (km/h => m/s)</field>
+    <field marker="/" multiplier="3600">(ampere*second => ampere*hour)</field>
+  </logMultipliers>
+</Log>

@@ -1,0 +1,6 @@
+__pycache__/*
+utilities/__pycache__/*
+*.db
+*.html
+*.mp4
+*.txt
