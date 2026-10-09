@@ -119,6 +119,7 @@ def get_parm(name):
 
 class PARM:
     def __init__(self,name):
+        self.name = name
         self.t,self.v = get_parm(name)
 
 # Roll
@@ -152,12 +153,13 @@ ATC_RAT_PIT_FLTD  = PARM('ATC_RAT_PIT_FLTD')
 ATC_RAT_PIT_SMAX  = PARM('ATC_RAT_PIT_SMAX')
 ATC_RAT_PIT_PDMX  = PARM('ATC_RAT_PIT_PDMX')
 
-def annotate_parm(axd, name):
-    print(name)
+def annotate_parm(axd, parm):
+    print(parm.name)
     print('=====================')
     print("idx\ttimeus\t\tvalue")
     print('---------------------')
-    t,v = get_parm(name)
+    t = parm.t
+    v = parm.v
     tl = [0]
     cnt = 0
     for i in range(len(t)):
@@ -171,12 +173,12 @@ def annotate_parm(axd, name):
             off_y     = 0
             offy_step = (ymax-ymin)/30
             offx_step = (xmax-xmin)/250
-            dff = name.split('_')[-2]
+            dff = parm.name.split('_')[-2]
             if dff == 'D':
                 s = 'DFF'
                 c='blueviolet'
             else:
-                s = name.split('_')[-1]
+                s = parm.name.split('_')[-1]
                 if s == 'I':
                     c='sienna'
                     off_y += offy_step * 3
@@ -204,192 +206,188 @@ def annotate_parm(axd, name):
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-# 绘图布局
-fig  = plt.figure(figsize=(16, 9), dpi=1920/16)
-gs   = gridspec.GridSpec(nrows=2, ncols=2, left=0.03, right=0.97, wspace=0.12)
-# 上图
-ax1  = fig.add_subplot(gs[0,:])
-ax1.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
-ax1.grid(ls="--",lw=0.3)
-# 中上图
-ax2  = fig.add_subplot(gs[1,0])
-ax2.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
-ax2.grid(ls="--",lw=0.3)
-# 右上图
-ax3  = fig.add_subplot(gs[1,1])
-ax3.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
-ax3.grid(ls="--",lw=0.3)
-
-ax1.plot(pidr_timeus,
-         pidr_tar,
-         label="PIDR.Tar",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax1.plot(pidr_timeus,
-         pidr_act,
-         label="PIDR.Act",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax1.legend()
-
-ax2.plot(pidr_timeus,
-         pidr_p,
-         label="PIDR.P",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax2.plot(pidr_timeus,
-         pidr_i,
-         label="PIDR.I",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax2.plot(pidr_timeus,
-         pidr_d,
-         label="PIDR.D",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax2.plot(pidr_timeus,
-         pidr_ff,
-         label="PIDR.FF",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax2.plot(pidr_timeus,
-         pidr_dff,
-         label="PIDR.DFF",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax2.legend()
-title_str  = "ATC_RAT_RLL_P = %.3f"%(ATC_RAT_RLL_P.v[-1])
-title_str += "    "
-title_str += "ATC_RAT_RLL_I = %.3f"%(ATC_RAT_RLL_I.v[-1])
-title_str += "\n"
-title_str += "ATC_RAT_RLL_D = %.3f"%(ATC_RAT_RLL_D.v[-1])
-title_str += "    "
-title_str += "ATC_RAT_RLL_FF = %.3f"%(ATC_RAT_RLL_FF.v[-1])
-title_str += "\n"
-title_str += "ATC_RAT_RLL_D_FF = %.3f"%(ATC_RAT_RLL_D_FF.v[-1])
-parms_str = title_str
-ax1.set_title(title_str)
-
-ax3.plot(pidr_timeus,
-         pidr_p,
-         label="PIDR.P",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax3.plot(pidr_timeus,
-         pidr_d,
-         label="PIDR.D",
-         marker = '.',
-         markersize = 2,
-         linestyle=":",
-         linewidth=0.6)
-ax3t = ax3.twinx()
-ax3t.plot(pidr_timeus,
-          pidr_dmod,
-          label="PIDR.Dmod",
-          marker = '.',
-          markersize = 2,
-          linestyle=":",
-          linewidth=0.6,
-          color='g')
-ax3.legend(loc='upper left')
-ax3t.legend(loc='upper right')
-title_str  = "ATC_RAT_RLL_SMAX = %.3f"%(ATC_RAT_RLL_SMAX.v[-1])
-ax3t.set_title(title_str)
-
-annotate_parm(ax1, 'ATC_RAT_RLL_P')
-annotate_parm(ax1, 'ATC_RAT_RLL_I')
-annotate_parm(ax1, 'ATC_RAT_RLL_D')
-annotate_parm(ax1, 'ATC_RAT_RLL_FF')
-annotate_parm(ax1, 'ATC_RAT_RLL_D_FF')
-
-annotate_parm(ax2, 'ATC_RAT_RLL_P')
-annotate_parm(ax2, 'ATC_RAT_RLL_I')
-annotate_parm(ax2, 'ATC_RAT_RLL_D')
-annotate_parm(ax2, 'ATC_RAT_RLL_FF')
-annotate_parm(ax2, 'ATC_RAT_RLL_D_FF')
-
-annotate_parm(ax3, 'ATC_RAT_RLL_SMAX')
-
 # 找最近值的索引
 def find_closest_idx(lst, value):
     array = np.asarray(lst)
     idx = (np.abs(array - value)).argmin()
     return idx
 
-# 找最近的值
-def find_closest_value(lst, value):
-    array = np.asarray(lst)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
+# 绘制一个通道(Roll/Pitch)的角速率 PID 图
+def plot_rat_pid(label,
+                 pid_timeus, pid_tar, pid_act,
+                 pid_p, pid_i, pid_d, pid_ff, pid_dff, pid_dmod,
+                 P, I, D, FF, DFF, SMAX):
+    # 绘图布局
+    fig  = plt.figure(figsize=(16, 9), dpi=1920/16)
+    gs   = gridspec.GridSpec(nrows=2, ncols=2, left=0.03, right=0.97, wspace=0.12)
+    # 上图
+    ax1  = fig.add_subplot(gs[0,:])
+    ax1.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
+    ax1.grid(ls="--",lw=0.3)
+    # 中上图
+    ax2  = fig.add_subplot(gs[1,0])
+    ax2.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
+    ax2.grid(ls="--",lw=0.3)
+    # 右上图
+    ax3  = fig.add_subplot(gs[1,1])
+    ax3.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
+    ax3.grid(ls="--",lw=0.3)
 
-# 图形交互
-PT_X    = pidr_timeus
-axd     = ax1
+    ax1.plot(pid_timeus,
+             pid_tar,
+             label="%s.Tar"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax1.plot(pid_timeus,
+             pid_act,
+             label="%s.Act"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax1.legend()
 
-# 找最近值的索引
-def find_closest_idx(lst, value):
-    array = np.asarray(lst)
-    idx = (np.abs(array - value)).argmin()
-    return idx
+    ax2.plot(pid_timeus,
+             pid_p,
+             label="%s.P"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax2.plot(pid_timeus,
+             pid_i,
+             label="%s.I"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax2.plot(pid_timeus,
+             pid_d,
+             label="%s.D"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax2.plot(pid_timeus,
+             pid_ff,
+             label="%s.FF"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax2.plot(pid_timeus,
+             pid_dff,
+             label="%s.DFF"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax2.legend()
 
-# 找最近的值
-def find_closest_value(lst, value):
-    array = np.asarray(lst)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
+    title_str  = "%s = %.3f"%(P.name,P.v[-1])
+    title_str += "    "
+    title_str += "%s = %.3f"%(I.name,I.v[-1])
+    title_str += "\n"
+    title_str += "%s = %.3f"%(D.name,D.v[-1])
+    title_str += "    "
+    title_str += "%s = %.3f"%(FF.name,FF.v[-1])
+    title_str += "\n"
+    title_str += "%s = %.3f"%(DFF.name,DFF.v[-1])
+    parms_str = title_str
+    ax1.set_title(title_str)
 
-def on_press(event):
-    global PT_X
-    global axd, ax1, ax2, ax3
-    global parms_str
+    ax3.plot(pid_timeus,
+             pid_p,
+             label="%s.P"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax3.plot(pid_timeus,
+             pid_d,
+             label="%s.D"%(label),
+             marker = '.',
+             markersize = 2,
+             linestyle=":",
+             linewidth=0.6)
+    ax3t = ax3.twinx()
+    ax3t.plot(pid_timeus,
+              pid_dmod,
+              label="%s.Dmod"%(label),
+              marker = '.',
+              markersize = 2,
+              linestyle=":",
+              linewidth=0.6,
+              color='g')
+    ax3.legend(loc='upper left')
+    ax3t.legend(loc='upper right')
+    title_str  = "%s = %.3f"%(SMAX.name,SMAX.v[-1])
+    ax3t.set_title(title_str)
 
-    if event.button==3: #鼠标右键点击
-        idx = find_closest_idx(PT_X,event.xdata)
-        xmin,xmax = axd.get_xlim()
-        ymin,ymax = axd.get_ylim()
-        axd.tick_params(axis='x',colors='red')
-        axd.tick_params(axis='y',colors='red')
-        axd.set_title(parms_str + "\nTimeUS: %d    (Zoom this one.)"%(PT_X[idx]))
-        axd.set_xlim(xmin,xmax)
-        axd.set_ylim(ymin,ymax)
+    annotate_parm(ax1, P)
+    annotate_parm(ax1, I)
+    annotate_parm(ax1, D)
+    annotate_parm(ax1, FF)
+    annotate_parm(ax1, DFF)
 
-        ax = [ax1,ax2,ax3]
-        for i in range(0,len(ax)):
-            ymin,ymax = ax[i].get_ylim()
-            ax[i].plot([PT_X[idx],PT_X[idx]],[ymin,ymax],
-                       linestyle="--",
-                       linewidth=0.5,
-                       color="r")
-            ax[i].set_ylim(ymin,ymax)
-        plt.draw()
+    annotate_parm(ax2, P)
+    annotate_parm(ax2, I)
+    annotate_parm(ax2, D)
+    annotate_parm(ax2, FF)
+    annotate_parm(ax2, DFF)
 
-def button_release(event):
-    global axd,ax1,ax2,ax3
+    annotate_parm(ax3, SMAX)
 
-    ax = [ax1,ax2,ax3]
-    if event.button == 1:
-        xmin, xmax = axd.get_xlim()
-        for i in range(0,len(ax)):
-            if axd != ax[i]:
-                ax[i].set_xlim(xmin,xmax)
+    # 图形交互
+    PT_X    = pid_timeus
+    axd     = ax1
 
-fig.canvas.mpl_connect('button_press_event', on_press)
-fig.canvas.mpl_connect('button_release_event', button_release)
+    def on_press(event):
+        if event.button==3: #鼠标右键点击
+            idx = find_closest_idx(PT_X,event.xdata)
+            xmin,xmax = axd.get_xlim()
+            ymin,ymax = axd.get_ylim()
+            axd.tick_params(axis='x',colors='red')
+            axd.tick_params(axis='y',colors='red')
+            axd.set_title(parms_str + "\nTimeUS: %d    (Zoom this one.)"%(PT_X[idx]))
+            axd.set_xlim(xmin,xmax)
+            axd.set_ylim(ymin,ymax)
+
+            ax = [ax1,ax2,ax3]
+            for i in range(0,len(ax)):
+                ymin,ymax = ax[i].get_ylim()
+                ax[i].plot([PT_X[idx],PT_X[idx]],[ymin,ymax],
+                           linestyle="--",
+                           linewidth=0.5,
+                           color="r")
+                ax[i].set_ylim(ymin,ymax)
+            plt.draw()
+
+    def button_release(event):
+        if event.button == 1:
+            xmin, xmax = axd.get_xlim()
+            ax = [ax1,ax2,ax3]
+            for i in range(0,len(ax)):
+                if axd != ax[i]:
+                    ax[i].set_xlim(xmin,xmax)
+
+    fig.canvas.mpl_connect('button_press_event', on_press)
+    fig.canvas.mpl_connect('button_release_event', button_release)
+
+# Roll
+plot_rat_pid("PIDR",
+             pidr_timeus, pidr_tar, pidr_act,
+             pidr_p, pidr_i, pidr_d, pidr_ff, pidr_dff, pidr_dmod,
+             ATC_RAT_RLL_P, ATC_RAT_RLL_I, ATC_RAT_RLL_D,
+             ATC_RAT_RLL_FF, ATC_RAT_RLL_D_FF, ATC_RAT_RLL_SMAX)
+
+# Pitch
+plot_rat_pid("PIDP",
+             pidp_timeus, pidp_tar, pidp_act,
+             pidp_p, pidp_i, pidp_d, pidp_ff, pidp_dff, pidp_dmod,
+             ATC_RAT_PIT_P, ATC_RAT_PIT_I, ATC_RAT_PIT_D,
+             ATC_RAT_PIT_FF, ATC_RAT_PIT_D_FF, ATC_RAT_PIT_SMAX)
 
 plt.show()

@@ -119,6 +119,7 @@ def get_parm(name):
 
 class PARM:
     def __init__(self,name):
+        self.name = name
         self.t,self.v = get_parm(name)
 
 # Roll
@@ -154,40 +155,16 @@ ATC_RAT_PIT_FLTD  = PARM('ATC_RAT_PIT_FLTD')
 ATC_RAT_PIT_SMAX  = PARM('ATC_RAT_PIT_SMAX')
 ATC_RAT_PIT_PDMX  = PARM('ATC_RAT_PIT_PDMX')
 
-tar = np.array(ang_desroll)
-act = np.array(ang_roll)
-err = list(tar-act)
-max_err_in_deg = max(abs(max(err)),abs(min(err)))
+sys.path.append('./utilities')
+from MathCommon import *
 
-ATC_ACC_MAX   = np.deg2rad(ATC_ACC_R_MAX.v[-1] * 0.01)
-Q_A_ANG_XXX_P   = ATC_ANG_RLL_P.v[-1]
-max_err_in_rad  = np.deg2rad(max_err_in_deg)
-RP_MIN_RADSS    = np.deg2rad(40)
-RP_MAX_RADSS    = np.deg2rad(720)
-Y_MIN_RADSS     = np.deg2rad(10)
-Y_MAX_RADSS     = np.deg2rad(120)
-
-input_list = np.linspace(-max_err_in_rad,max_err_in_rad,int(np.ceil(max_err_in_rad))*50+1)
-input_list = np.around(input_list,5)
-input_list = list(input_list)
-results    = []
-for i in input_list:
-    import sys
-    sys.path.append('./utilities')
-    from MathCommon import *
-    second_ord_lim = constrain_float(ATC_ACC_MAX/2,RP_MIN_RADSS,RP_MAX_RADSS)
-    res = sqrt_controller(i, Q_A_ANG_XXX_P, second_ord_lim, 0.0025)
-    results.append(res)
-
-input_list = np.rad2deg(input_list)
-results    = np.rad2deg(results)
-
-def annotate_parm(axd, name):
-    print(name)
+def annotate_parm(axd, parm):
+    print(parm.name)
     print('=====================')
     print("idx\ttimeus\t\tvalue")
     print('---------------------')
-    t,v = get_parm(name)
+    t = parm.t
+    v = parm.v
     tl = [0]
     cnt = 0
     for i in range(len(t)):
@@ -201,12 +178,12 @@ def annotate_parm(axd, name):
             off_y     = 0
             offy_step = (ymax-ymin)/30
             offx_step = (xmax-xmin)/250
-            dff = name.split('_')[-2]
+            dff = parm.name.split('_')[-2]
             if dff == 'D':
                 s = 'DFF'
                 c='blueviolet'
             else:
-                s = name.split('_')[-1]
+                s = parm.name.split('_')[-1]
                 if s == 'I':
                     c='sienna'
                     off_y += offy_step * 3
@@ -230,153 +207,177 @@ def annotate_parm(axd, name):
             axd.text(t[i]+offx_step,ymin+off_y, r'%s=%.3f'%(s,v[i]), color=c, fontsize=8)
     print()
 
-# 依上面取得的数据通过 matplotlib 绘图
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
-
-# 绘图布局
-fig  = plt.figure(figsize=(16, 9), dpi=1920/16)
-gs   = gridspec.GridSpec(nrows=2, ncols=3, left=0.03, right=0.98, wspace=0.12)
-# 左图
-axc  = fig.add_subplot(gs[:,:-1])
-axc.ticklabel_format(style='sci', scilimits=(-1,2), axis='y')
-axc.grid(ls="--",lw=0.3)
-# 右下图
-axp  = fig.add_subplot(gs[1,-1])
-axp.ticklabel_format(style='plain', scilimits=(0,1), axis='both')
-axp.grid(ls="--",lw=0.3)
-# 右上图
-axu  = fig.add_subplot(gs[0,-1])
-axu.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
-axu.grid(ls="--",lw=0.3)
-
-axc.plot(pidr_timeus,
-         pidr_tar,
-         label="PIDR.Tar",
-         marker = '',
-         linestyle="-")
-axc.plot(pidr_timeus,
-         pidr_act,
-         label="PIDR.Act",
-         marker = '',
-         linestyle="-")
-axc.plot(pidr_timeus,
-         pidr_dmod,
-         label="PIDR.Dmod",
-         marker = '.',
-         linestyle=":")
-axc.legend()
-title_str  = "ATC_RAT_RLL_P = %.3f"%(ATC_RAT_RLL_P.v[-1])
-title_str += "    "
-title_str += "ATC_RAT_RLL_I = %.3f"%(ATC_RAT_RLL_I.v[-1])
-title_str += "\n"
-title_str += "ATC_RAT_RLL_D = %.3f"%(ATC_RAT_RLL_D.v[-1])
-title_str += "    "
-title_str += "ATC_RAT_RLL_FF = %.3f"%(ATC_RAT_RLL_FF.v[-1])
-title_str += "\n"
-title_str += "ATC_RAT_RLL_D_FF = %.3f"%(ATC_RAT_RLL_D_FF.v[-1])
-axc.set_title(title_str)
-
-axu.plot(ang_timeus,
-         ang_desroll,
-         label="ANG.DesRoll",
-         marker = '',
-         linestyle="-")
-axu.plot(ang_timeus,
-         ang_roll,
-         label="ANG.Roll",
-         marker = '',
-         linestyle="-")
-axu.legend()
-axu.set_title('ATC_ANG_RLL_P = %.2f'%(Q_A_ANG_XXX_P))
-
-axp.plot(input_list,input_list,
-         marker = '',
-         linestyle = '--')
-axp.plot(input_list,results,
-         marker = '.',
-         linestyle = ':')
-axp.set_title('ATC_ACC_R_MAX = %d'%(ATC_ACC_R_MAX.v[-1]))
-miloc = plt.MultipleLocator(2.5)
-axp.xaxis.set_minor_locator(miloc)
-axp.yaxis.set_minor_locator(miloc)
-axp.grid(linestyle='--',which='minor',lw=0.3)
-axp.set_aspect('equal', adjustable='box')
-xylim = max(max(axp.get_xlim()),max(axp.get_ylim()))
-axp.set_xlim(-xylim,xylim)
-
-annotate_parm(axc, 'ATC_RAT_RLL_P')
-annotate_parm(axc, 'ATC_RAT_RLL_I')
-annotate_parm(axc, 'ATC_RAT_RLL_D')
-annotate_parm(axc, 'ATC_RAT_RLL_FF')
-annotate_parm(axc, 'ATC_RAT_RLL_D_FF')
-
 # 找最近值的索引
 def find_closest_idx(lst, value):
     array = np.asarray(lst)
     idx = (np.abs(array - value)).argmin()
     return idx
 
-# 找最近的值
-def find_closest_value(lst, value):
-    array = np.asarray(lst)
-    idx = (np.abs(array - value)).argmin()
-    return array[idx]
+# 依上面取得的数据通过 matplotlib 绘图
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
 
-# 图形交互
-PT_X    = ang_timeus
-PT_Y    = ang_desroll
-axd     = axc
-Main_X  = pidr_timeus
-Main_Y  = pidr_tar
-Main_Y1 = pidr_act
-Main_ax = axc
-def on_press(event):
-    global PT_X, PT_Y, axd, axu
-    global Main_ax, Main_X, Main_Y, Main_Y1
+# 绘制一个通道(Roll/Pitch)的角度 P 与角速率 PID 图
+def plot_ang_p_pr(pid_label, chan,
+                  pid_timeus, pid_tar, pid_act, pid_p, pid_i, pid_d, pid_ff, pid_dff, pid_dmod,
+                  ang_timeus, ang_des, ang_act,
+                  P, I, D, FF, DFF, ANG_P, ACC_MAX):
+    # sqrt_controller 输入输出曲线
+    tar = np.array(ang_des)
+    act = np.array(ang_act)
+    err = list(tar-act)
+    max_err_in_deg = max(abs(max(err)),abs(min(err)))
 
-    if event.button==3: #鼠标右键点击
-        idx = find_closest_idx(PT_X,event.xdata)
-        xmin,xmax = axd.get_xlim()
-        ymin,ymax = axd.get_ylim()
-        axd.plot([PT_X[idx],PT_X[idx]],[ymin,ymax],
-                 linestyle="--",
-                 linewidth=0.5,
-                 color="r")
-        axd.tick_params(axis='x',colors='red')
-        axd.tick_params(axis='y',colors='red')
-        #axd.set_title("TimeUS: %d"%(PT_X[idx]))
-        axd.set_xlim(xmin,xmax)
-        axd.set_ylim(ymin,ymax)
+    ATC_ACC_MAX     = np.deg2rad(ACC_MAX.v[-1] * 0.01)
+    Q_A_ANG_XXX_P   = ANG_P.v[-1]
+    max_err_in_rad  = np.deg2rad(max_err_in_deg)
+    RP_MIN_RADSS    = np.deg2rad(40)
+    RP_MAX_RADSS    = np.deg2rad(720)
 
-        if axd == axc:
-            Main_ax = axu
-            Main_X = PT_X
-            Main_Y = PT_X
+    input_list = np.linspace(-max_err_in_rad,max_err_in_rad,int(np.ceil(max_err_in_rad))*50+1)
+    input_list = np.around(input_list,5)
+    input_list = list(input_list)
+    results    = []
+    for i in input_list:
+        second_ord_lim = constrain_float(ATC_ACC_MAX/2,RP_MIN_RADSS,RP_MAX_RADSS)
+        res = sqrt_controller(i, Q_A_ANG_XXX_P, second_ord_lim, 0.0025)
+        results.append(res)
 
-        idx = find_closest_idx(Main_X,event.xdata)
-        xmin,xmax = Main_ax.get_xlim()
-        ymin,ymax = Main_ax.get_ylim()
-        Main_ax.plot([Main_X[idx],Main_X[idx]],[ymin,ymax],
-                      linestyle="--",
-                      linewidth=0.5,
-                      color="r")
-        Main_ax.set_xlim(xmin,xmax)
-        Main_ax.set_ylim(ymin,ymax)
+    input_list = np.rad2deg(input_list)
+    results    = np.rad2deg(results)
 
-        plt.draw()
+    # 绘图布局
+    fig  = plt.figure(figsize=(16, 9), dpi=1920/16)
+    gs   = gridspec.GridSpec(nrows=2, ncols=3, left=0.03, right=0.98, wspace=0.12)
+    # 左图
+    axc  = fig.add_subplot(gs[:,:-1])
+    axc.ticklabel_format(style='sci', scilimits=(-1,2), axis='y')
+    axc.grid(ls="--",lw=0.3)
+    # 右下图
+    axp  = fig.add_subplot(gs[1,-1])
+    axp.ticklabel_format(style='plain', scilimits=(0,1), axis='both')
+    axp.grid(ls="--",lw=0.3)
+    # 右上图
+    axu  = fig.add_subplot(gs[0,-1])
+    axu.ticklabel_format(style='sci', scilimits=(-1,2), axis='both')
+    axu.grid(ls="--",lw=0.3)
 
-def button_release(event):
-    global axd,axu,axc
+    axc.plot(pid_timeus,
+             pid_tar,
+             label="%s.Tar"%(pid_label),
+             marker = '',
+             linestyle="-")
+    axc.plot(pid_timeus,
+             pid_act,
+             label="%s.Act"%(pid_label),
+             marker = '',
+             linestyle="-")
+    axc.plot(pid_timeus,
+             pid_dmod,
+             label="%s.Dmod"%(pid_label),
+             marker = '.',
+             linestyle=":")
+    axc.legend()
+    title_str  = "%s = %.3f"%(P.name,P.v[-1])
+    title_str += "    "
+    title_str += "%s = %.3f"%(I.name,I.v[-1])
+    title_str += "\n"
+    title_str += "%s = %.3f"%(D.name,D.v[-1])
+    title_str += "    "
+    title_str += "%s = %.3f"%(FF.name,FF.v[-1])
+    title_str += "\n"
+    title_str += "%s = %.3f"%(DFF.name,DFF.v[-1])
+    axc.set_title(title_str)
 
-    ax = [axu,axc]
-    if event.button == 1:
-        xmin, xmax = axd.get_xlim()
-        for i in range(0,2):
-            if axd != ax[i]:
-                ax[i].set_xlim(xmin,xmax)
+    axu.plot(ang_timeus,
+             ang_des,
+             label="ANG.Des%s"%(chan),
+             marker = '',
+             linestyle="-")
+    axu.plot(ang_timeus,
+             ang_act,
+             label="ANG.%s"%(chan),
+             marker = '',
+             linestyle="-")
+    axu.legend()
+    axu.set_title('%s = %.2f'%(ANG_P.name,Q_A_ANG_XXX_P))
 
-fig.canvas.mpl_connect('button_press_event', on_press)
-fig.canvas.mpl_connect('button_release_event', button_release)
+    axp.plot(input_list,input_list,
+             marker = '',
+             linestyle = '--')
+    axp.plot(input_list,results,
+             marker = '.',
+             linestyle = ':')
+    axp.set_title('%s = %d'%(ACC_MAX.name,ACC_MAX.v[-1]))
+    miloc = plt.MultipleLocator(2.5)
+    axp.xaxis.set_minor_locator(miloc)
+    axp.yaxis.set_minor_locator(miloc)
+    axp.grid(linestyle='--',which='minor',lw=0.3)
+    axp.set_aspect('equal', adjustable='box')
+    xylim = max(max(axp.get_xlim()),max(axp.get_ylim()))
+    axp.set_xlim(-xylim,xylim)
+
+    annotate_parm(axc, P)
+    annotate_parm(axc, I)
+    annotate_parm(axc, D)
+    annotate_parm(axc, FF)
+    annotate_parm(axc, DFF)
+
+    # 图形交互
+    PT_X    = ang_timeus
+    axd     = axc
+    Main_ax = axu
+    Main_X  = ang_timeus
+
+    def on_press(event):
+        if event.button==3: #鼠标右键点击
+            idx = find_closest_idx(PT_X,event.xdata)
+            xmin,xmax = axd.get_xlim()
+            ymin,ymax = axd.get_ylim()
+            axd.plot([PT_X[idx],PT_X[idx]],[ymin,ymax],
+                     linestyle="--",
+                     linewidth=0.5,
+                     color="r")
+            axd.tick_params(axis='x',colors='red')
+            axd.tick_params(axis='y',colors='red')
+            axd.set_xlim(xmin,xmax)
+            axd.set_ylim(ymin,ymax)
+
+            idx = find_closest_idx(Main_X,event.xdata)
+            xmin,xmax = Main_ax.get_xlim()
+            ymin,ymax = Main_ax.get_ylim()
+            Main_ax.plot([Main_X[idx],Main_X[idx]],[ymin,ymax],
+                          linestyle="--",
+                          linewidth=0.5,
+                          color="r")
+            Main_ax.set_xlim(xmin,xmax)
+            Main_ax.set_ylim(ymin,ymax)
+
+            plt.draw()
+
+    def button_release(event):
+        if event.button == 1:
+            xmin, xmax = axd.get_xlim()
+            ax = [axu,axc]
+            for i in range(0,2):
+                if axd != ax[i]:
+                    ax[i].set_xlim(xmin,xmax)
+
+    fig.canvas.mpl_connect('button_press_event', on_press)
+    fig.canvas.mpl_connect('button_release_event', button_release)
+
+# Roll
+plot_ang_p_pr("PIDR","Roll",
+              pidr_timeus, pidr_tar, pidr_act, pidr_p, pidr_i, pidr_d, pidr_ff, pidr_dff, pidr_dmod,
+              ang_timeus, ang_desroll, ang_roll,
+              ATC_RAT_RLL_P, ATC_RAT_RLL_I, ATC_RAT_RLL_D, ATC_RAT_RLL_FF, ATC_RAT_RLL_D_FF,
+              ATC_ANG_RLL_P, ATC_ACC_R_MAX)
+
+# Pitch
+plot_ang_p_pr("PIDP","Pitch",
+              pidp_timeus, pidp_tar, pidp_act, pidp_p, pidp_i, pidp_d, pidp_ff, pidp_dff, pidp_dmod,
+              ang_timeus, ang_despitch, ang_pitch,
+              ATC_RAT_PIT_P, ATC_RAT_PIT_I, ATC_RAT_PIT_D, ATC_RAT_PIT_FF, ATC_RAT_PIT_D_FF,
+              ATC_ANG_PIT_P, ATC_ACC_P_MAX)
 
 plt.show()
