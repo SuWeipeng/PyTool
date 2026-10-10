@@ -21,7 +21,7 @@ if platform.system() == 'Linux':
 if len(sys.argv) > 1:
     db_name = sys.argv[1]
 else:
-    db_name = "D:/Log/00000009.db"
+    db_name = "D:/Log/00000002.db"
 
 # Cross-platform path handling
 db_path = os.path.join('..', db_name)
