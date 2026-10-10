@@ -228,7 +228,7 @@ def plot_ang_p_pr(pid_label, chan,
     err = list(tar-act)
     max_err_in_deg = max(abs(max(err)),abs(min(err)))
 
-    ATC_ACC_MAX     = np.deg2rad(ACC_MAX.v[-1] * 0.01)
+    ATC_ACC_MAX     = np.deg2rad(ACC_MAX.v[-1])
     Q_A_ANG_XXX_P   = ANG_P.v[-1]
     max_err_in_rad  = np.deg2rad(max_err_in_deg)
     RP_MIN_RADSS    = np.deg2rad(40)
