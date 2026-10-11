@@ -3,3 +3,4 @@ utilities/__pycache__/*
 *.db
 *.html
 *.mp4
+compare_params.py

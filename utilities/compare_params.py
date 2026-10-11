@@ -20,6 +20,7 @@ from pathlib import Path
 
 TR_RE = re.compile(r"<tr[^>]*>(.*?)</tr>", re.IGNORECASE | re.DOTALL)
 TD_RE = re.compile(r"<td[^>]*>(.*?)</td>", re.IGNORECASE | re.DOTALL)
+TAG_RE = re.compile(r"<[^>]+>")  # 剥掉单元格内嵌标签(Mission Planner 高亮行的 <font>/<strong>)
 
 DIFF_STYLE = ' style="background-color: cyan; color: red;"'
 
@@ -37,7 +38,8 @@ def parse_params(path):
     """解析参数表,返回 {NAME: (seq, value, meaning)},保持文件中的行序。"""
     params = {}
     for row in TR_RE.findall(read_text(path)):
-        cells = [html.unescape(c).strip() for c in TD_RE.findall(row)]
+        # 先剥标签再 unescape,避免把正文里的 &lt; 还原成 < 后被误剥
+        cells = [html.unescape(TAG_RE.sub("", c)).strip() for c in TD_RE.findall(row)]
         if len(cells) < 3 or not cells[1]:
             continue  # 表头行(<th>)或残缺行
         meaning = cells[3] if len(cells) > 3 else ""
